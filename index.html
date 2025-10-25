@@ -5,7 +5,18 @@
         <link rel="stylesheet" href="styles.css" />
     </head>
     <body onload="on_load()">
-        <canvas id="game" width="320" height="640"></canvas>
+        <table id="gameTable">
+            <tbody>
+                <tr>
+                    <td>
+                        <canvas id="game" width="320" height="640"></canvas>
+                    </td>
+                    <td>
+                        <canvas id="sidebarUI" width="80" height="640"></canvas>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
         <script src="index.js" defer></script>
     </body>
