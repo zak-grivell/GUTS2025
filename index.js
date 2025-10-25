@@ -207,3 +207,129 @@ function rotateObj(arr) {
   for(let i = 0; i < iLimit; i++) ret[i] = rotate90degs(translateFn(arr[i]));
   return ret;
 }
+
+// TODO - implement method
+function rotateCurrentBlock() {
+  throw new Error("Not implemented yet");
+}
+
+// UI Code
+/*const UI = (function() {
+  const uiCanvas = document.body.querySelector("#sidebarUI");
+  const uiCtx = uiCanvas.getContext("2d");
+
+  class UI_Elem {
+    constructor(size, displayFn) {
+      this.size = size;
+      this.display = displayFn;
+    }
+  }
+
+  class UI_Button extends UI_Elem {
+    constructor(size, displayFn, onClickFn) {
+      super(size, displayFn);
+      this.onClick = onClickFn();
+    }
+  }
+
+  class UI_Text extends UI_Elem {
+    constructor(size, displayFn, font, text) {
+      super(size, displayFn);
+      this.font = font;
+      this.text = text;
+    }
+    static defaultDisplay(obj) {
+      const ret = () => {
+        uiCtx.font = this.font;
+        const bounds = UI_Grid.getPosBounds();
+        uiCtx.fillText(this.text,);
+      }
+      ret.bind(obj);
+      return ret;
+    }
+  }
+
+  class Bounds {
+    constructor(p1, p2) {
+      this.p1 = p1;
+      this.p2 = p2;
+    }
+  }
+
+  class UI_Row {
+    constructor(height, elems) {
+      this.height = height;
+      this.elems = elems;
+    }
+  }
+
+  // Create UI grid
+  const UI_Grid = {
+    grid: [],
+    rowSizes: {},
+    rowCount: 0,
+    totalRowWeight: 0,
+    isRowEmpty: row => row >= UI_Grid.grid.length,
+    createRow: (height) => {
+      if(UI.isRowEmpty(row)) {
+        UI_Grid.grid.push(new UI_Row(height, []));
+        UI_Grid.rowSizes[row] = 0;
+        UI_Grid.rowCount += 1;
+        UI_Grid.totalRowWeight += height;
+      }else throw new Error("Row already created");
+      return {
+        add: elem => UI_Grid.add(elem, row)
+      };
+    },
+    add: (elem, row) => {
+      function inner(x) {
+        UI_Grid.grid[row].push(x);
+        UI_Grid.rowSizes[row] += 1;
+      }
+      if(UI_Grid.isRowEmpty(row)) {
+        throw new Error("Cannot add elements to a non-existent row");
+      }else inner(elem);
+      return {
+        then: inner,
+        thenOnRow: UI_Grid.add,
+        createRow: UI_Grid.createRow
+      }
+    },
+    getPosBounds: (row, col) => {
+      if(UI_Grid.isRowEmpty(row)) throw new Error("Cannot get position bounds of non-existent row");
+    },
+    display: () => {
+      Object.keys(UI_Grid.grid).forEach(k => {
+        for(const elem of UI_Grid[k]) elem.display();
+      });
+    }
+  };
+
+  // Create game UI
+
+  // Initialise score counter to 0
+  const scoreText = new UI_Text(1, UI_Text.defaultDisplay, "Score");
+  const scoreTextDynamic = new UI_Text(1, UI_Text.defaultDisplay, "0");
+  // Button for rotating the block (to make it clear that it can be rotated)
+  const rotateButton = new UI_Button(1, () => {}, rotateCurrentBlock);
+
+  // Add UI
+  UI_Grid
+    .createRow(1)
+    .add(scoreText)
+    .then(scoreTextDynamic)
+    .createRow(6)
+    .add(new UI_Elem(1, () => {}))
+    .createRow(1)
+    .then(rotateButton);
+
+  return {
+    display: () => {
+      // Display the entire grid
+      UI_Grid.display()
+    },
+    updateScore: () => {}
+  };
+})();
+UI.display();
+*/
