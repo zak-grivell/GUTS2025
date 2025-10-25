@@ -18,6 +18,10 @@ function p(x, y) {
   return { x, y };
 }
 
+function v_add(a, b) {
+  return { x: a.x + b.x, y: a.y + b.y };
+}
+
 let block_types = "IJLOSTZ";
 
 let block_shapes = {
@@ -26,12 +30,17 @@ let block_shapes = {
   L: [p(0, 0), p(0, 1), p(0, 2), p(1, 2)],
   O: [p(0, 0), p(0, 1), p(1, 0), p(1, 1)],
   S: [p(0, 0), p(0, 1), p(1, 1), p(1, 2)],
-  T: [p(1, 0), p()],
+  T: [p(1, 0), p(0, 1), p(1, 1), p(1, 2)],
+  Z: [p(1, 0), p(1, 1), p(0, 1), p(0, 2)],
 };
 
 Object.keys(images).forEach((k) => {
   images[k].src = `assets/${k}.png`;
 });
+
+images.notgiven = new Image();
+
+images.notgiven.src = "assets/notgiven.png";
 
 function render_block(block) {
   ctx.drawImage(
@@ -43,11 +52,18 @@ function render_block(block) {
   );
 }
 
+function render_single(pos, block) {
+  console.log(pos.x, pos.y, block, pos);
+
+  ctx.beginPath(); // Start a new path
+  ctx.rect(pos.x * 16, pos.y * 16, 16, 16); // Add a rectangle to the current path
+  ctx.fill(); // Render the path
+}
+
 const X_SIZE = 10;
 const Y_SIZE = 40;
 
-/** @type {{{ x: number, y:number}: {t:string, pos: {x:number, y:number}}}} */
-let grid = {};
+let grid = new Map();
 
 function on_load() {
   window.requestAnimationFrame(() => {});
@@ -62,7 +78,13 @@ function on_load() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (current_down.pos.y + current_down.size.y == Y_SIZE) {
-      blocks[current_down.pos] = current_down;
+      block_shapes[current_down.t].forEach((pos) => {
+        console.log(v_add(pos, current_down.pos));
+        grid.set(v_add(pos, current_down.pos), {
+          sprite: images.notgiven,
+          pos: v_add(pos, current_down.pos),
+        });
+      });
 
       current_down = {
         t: "O",
@@ -71,9 +93,11 @@ function on_load() {
       };
     }
 
-    Object.values(blocks).forEach(render_block);
+    grid.forEach((k, v) => render_single(v, k));
+
+    // console.log(grid);
 
     render_block(current_down);
     current_down.pos.y += 1;
-  }, 500);
+  }, 100);
 }
