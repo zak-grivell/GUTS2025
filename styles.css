@@ -1,0 +1,16 @@
+
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+canvas {
+    width: 40vmin;
+    height: 80vmin;
+    display: block;
+    margin: auto;
+    border-style: solid;
+    border-color: black;
+    border-width: 2px;
+}
