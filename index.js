@@ -200,3 +200,19 @@ document.addEventListener("keydown", function (event) {
     current_down.rotation = next_rot;
   }
 });
+
+const rotate90degs = v => p(-v.y, v.x);
+const translateCoord = o => v => p(v.x - o.x, v.y - o.y);
+
+function rotateObj(arr) {
+  let width = 0, height = 0;
+  for(const v of arr) {
+    if(v.x > width) width = v.x;
+    if(v.y > height) height = v.y;
+  }
+  const translateFn = translateCoord(p(width / 2, height / 2));
+  const iLimit = arr.length;
+  const ret = new Array(iLimit);
+  for(let i = 0; i < iLimit; i++) ret[i] = rotate90degs(translateFn(arr[i]));
+  return ret;
+}
