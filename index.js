@@ -3,6 +3,7 @@ let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
 
 function rand_array(items) {
+  return "O";
   return items[Math.floor(Math.random() * items.length)];
 }
 
@@ -22,47 +23,45 @@ function p(x, y) {
   return { x, y };
 }
 
-function v_string(a) {
-  return `${a.x}:${a.y}`;
-}
-
 function v_add(a, b) {
   return { x: a.x + b.x, y: a.y + b.y };
 }
 
 let block_types = "IJLOSTZ";
 
+let running = false;
+
 let block_shapes = {
   I: [
     [p(0, 0), p(0, 1), p(0, 2), p(0, 3)],
-    [p(0, 0), p(1, 0), p(2, 0), p(3, 0)],
+    // [p(0, 0), p(1, 0), p(2, 0), p(3, 0)],
   ],
   J: [
     [p(1, 0), p(1, 1), p(1, 2), p(0, 2)],
-    [p(0, 0), p(0, 1), p(1, 1), p(1, 2)],
-    [p(0, 0), p(1, 0), p(0, 1), p(0, 2)],
-    [p(0, 0), p(1, 0), p(2, 0), p(1, 2)],
+    // [p(0, 0), p(0, 1), p(1, 1), p(1, 2)],
+    // [p(0, 0), p(1, 0), p(0, 1), p(0, 2)],
+    // [p(0, 0), p(1, 0), p(2, 0), p(1, 2)],
   ],
   L: [
     [p(0, 0), p(0, 1), p(0, 2), p(1, 2)],
-    [p(0, 0), p(0, 1), p(1, 0), p(2, 0)],
-    [p(0, 0), p(1, 0), p(1, 1), p(1, 2)],
-    [p(0, 1), p(1, 1), p(1, 2), p(2, 0)],
+    // [p(0, 0), p(0, 1), p(1, 0), p(2, 0)],
+    // [p(0, 0), p(1, 0), p(1, 1), p(1, 2)],
+    // [p(0, 1), p(1, 1), p(1, 2), p(2, 0)],
   ],
   O: [[p(0, 0), p(0, 1), p(1, 0), p(1, 1)]],
   S: [
     [p(0, 0), p(0, 1), p(1, 1), p(1, 2)],
-    [p(0, 1), p(1, 1), p(1, 0), p(2, 0)],
+    // [p(0, 1), p(1, 1), p(1, 0), p(2, 0)],
   ],
   T: [
     [p(1, 0), p(0, 1), p(1, 1), p(1, 2)],
-    [p(0, 1), p(1, 1), p(1, 0), p(2, 1)],
-    [p(0, 0), p(0, 1), p(0, 2), p(1, 1)],
-    [p(0, 0), p(1, 0), p(2, 0), p(1, 1)],
+    // [p(0, 1), p(1, 1), p(1, 0), p(2, 1)],
+    // [p(0, 0), p(0, 1), p(0, 2), p(1, 1)],
+    // [p(0, 0), p(1, 0), p(2, 0), p(1, 1)],
   ],
   Z: [
     [p(1, 0), p(1, 1), p(0, 1), p(0, 2)],
-    [p(0, 0), p(1, 0), p(1, 1), p(2, 1)],
+    // [p(0, 0), p(1, 0), p(1, 1), p(2, 1)],
   ],
 };
 
@@ -72,10 +71,10 @@ Object.keys(images).forEach((k) => {
 
 images.notgiven = new Image();
 
-images.notgiven.src = "assets/notgiven.png";
+images.notgiven.src = "assets/cube.png";
 
 function render_block(block) {
-  block_shapes[block.t][block.rotation].forEach((offset) => {
+  block.shape.forEach((offset) => {
     let p = v_add(block.pos, offset);
 
     ctx.drawImage(
@@ -89,10 +88,11 @@ function render_block(block) {
 }
 
 function render_single(pos, block) {
+  block.sprite.setAttribute("style", "transform: rotate(" + 90 + "deg)");
   ctx.drawImage(
     block.sprite,
-    block.pos.x * grid_size,
-    block.pos.y * grid_size,
+    pos.x * grid_size,
+    pos.y * grid_size,
     grid_size,
     grid_size,
   );
@@ -101,118 +101,189 @@ function render_single(pos, block) {
 const X_SIZE = 10;
 const Y_SIZE = 20;
 
-let grid = Array.apply(null, Array(Y_SIZE)).map(() =>
-  Array(X_SIZE).map(() => null),
+let grid = Array.from({ length: Y_SIZE + 1 }, () =>
+  Array.from({ length: X_SIZE }, () => null),
 );
 
 function gg(point) {
-  grid[point.y][point.x];
+  try {
+    return grid[point.y][point.x];
+  } catch (e) {
+    console.log(point);
+    throw e;
+  }
 }
 
 function gs(point, val) {
   grid[point.y][point.x] = val;
 }
 
-function check_direction(current_down, direction, rotation) {
-  return block_shapes[current_down.t][rotation].some((pos) => {
+function check_direction(current_down, direction, shape) {
+  return shape.some((pos) => {
     let p = v_add(v_add(pos, current_down.pos), direction);
 
-    if (p.x < 0 || p.y >= Y_SIZE || p.x >= X_SIZE) {
-      return true;
+    let out_of_bounds = p.x < 0 || p.y >= Y_SIZE || p.x >= X_SIZE;
+
+    if (p.y < 0) {
+      return false;
     }
-    return gg(p) != null;
+
+    return out_of_bounds || gg(p) !== null;
   });
 }
 
-let current_down = {
-  t: rand_array(block_types),
-  pos: { x: X_SIZE / 2, y: 0 },
-  rotation: 0,
-};
+function clearRow(y) {
+  grid.splice(y, 1);
+}
 
-function moveCellDown(point) {
-  if (gg(point) == null && gg({})) {
-    return;
+function rowFull(y) {
+  try {
+    return grid[y].every((v) => v !== null);
+  } catch (e) {
+    console.log(y, grid[y]);
+    throw e;
   }
 }
 
-function on_load() {
-  setInterval(() => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function add_cube(position) {
+  gs(position, {
+    sprite: images.notgiven,
+  });
+}
 
-    if (check_direction(current_down, { x: 0, y: 1 }, current_down.rotation)) {
-      const y_changed = [];
-      block_shapes[current_down.t][current_down.rotation].forEach((pos) => {
-        gs(v_add(pos, current_down.pos), {
-          sprite: images.notgiven,
-          pos: v_add(pos, current_down.pos),
-        });
-        y_changed.push(pos.y);
-      });
+function spawn_block() {
+  let next_shape = rand_array(block_types);
 
-      y_changed.toSorted().forEach((y) => {
-        let should_clear = grid[y].every((v) => v != null);
-        console.log(should_clear);
+  current_down = {
+    t: next_shape,
+    pos: { x: X_SIZE / 2, y: -4 },
+    shape: block_shapes[next_shape][0],
+  };
+}
 
-        if (should_clear) {
-          grid[y].forEach((_, i) => {
-            grid[y][i] = null;
-          });
-        }
-      });
+let score = 0;
 
-      current_down = {
-        t: rand_array(block_types),
-        pos: { x: X_SIZE / 2, y: 0 },
-        rotation: 0,
-      };
-    }
+function gameOver() {
+  ctx.font = "32px 'Press Start 2P'";
 
-    grid.forEach((row, y) =>
-      row.forEach((item, x) => render_single({ x, y }, item)),
+  ctx.fillText("Click", 90, 200);
+  ctx.fillText("To", 140, 250);
+  ctx.fillText("Retry", 90, 300);
+}
+
+function process() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  let can_move_down = check_direction(
+    current_down,
+    { x: 0, y: 1 },
+    current_down.shape,
+  );
+
+  if (can_move_down) {
+    let cube_positions = current_down.shape.map((pos) =>
+      v_add(pos, current_down.pos),
     );
 
-    render_block(current_down);
-    current_down.pos.y += 1;
-  }, 200);
+    let y_changed = cube_positions.map((p) => p.y);
+
+    if (y_changed.some((p) => p < 0)) {
+      gameOver();
+      return;
+    }
+
+    cube_positions.forEach(add_cube);
+
+    let to_clear = [...new Set(y_changed)]
+      .toSorted((a, b) => b - a)
+      .filter(rowFull);
+
+    to_clear.forEach(clearRow);
+    to_clear.forEach(() => {
+      grid.unshift(Array.from({ length: X_SIZE }).map(() => null));
+      score += 100;
+    });
+
+    spawn_block();
+  }
+
+  // render the placed blocks
+  grid.forEach((row, y) =>
+    row.forEach((item, x) => {
+      if (item !== null) {
+        render_single({ x, y }, item);
+      }
+    }),
+  );
+
+  // render the falling block
+  render_block(current_down);
+  current_down.pos.y += 1;
+}
+
+canvas.addEventListener("click", () => {
+  grid = Array.from({ length: Y_SIZE + 1 }, () =>
+    Array.from({ length: X_SIZE }, () => null),
+  );
+
+  spawn_block();
+
+  running = true;
+
+  setInterval(process, 200);
+});
+
+function on_load() {
+  ctx.font = "32px 'Press Start 2P'";
+
+  ctx.fillText("Click", 90, 200);
+  ctx.fillText("To", 140, 250);
+  ctx.fillText("Start", 90, 300);
+}
+
+function go_left() {
+  if (!check_direction(current_down, { x: -1, y: 0 }, current_down.shape)) {
+    current_down.pos.x = Math.max(0, current_down.pos.x - 1);
+  }
+}
+
+function go_right() {
+  if (!check_direction(current_down, { x: 1, y: 0 }, current_down.shape)) {
+    current_down.pos.x = Math.min(9, current_down.pos.x + 1);
+  }
+}
+
+function rotate() {
+  let next_rot = rotateObj(current_down.shape);
+
+  if (!check_direction(current_down, { x: 0, y: 0 }, next_rot)) {
+    current_down.shape = next_rot;
+  }
 }
 
 document.addEventListener("keydown", function (event) {
-  let next_rot =
-    (current_down.rotation + 1) % block_shapes[current_down.t].length;
-
-  if (
-    event.key == "ArrowLeft" &&
-    !check_direction(current_down, { x: -1, y: 0 }, current_down.rotation)
-  ) {
-    current_down.pos.x = Math.max(0, current_down.pos.x - 1);
-    console.log("left");
-  } else if (
-    event.key == "ArrowRight" &&
-    !check_direction(current_down, { x: 1, y: 0 }, current_down.rotation)
-  ) {
-    console.log("right");
-    current_down.pos.x = Math.min(9, current_down.pos.x + 1);
-  } else if (
-    event.key == "ArrowUp" &&
-    !check_direction(current_down, { x: 0, y: 0 }, next_rot)
-  ) {
-    current_down.rotation = next_rot;
+  if (event.key == "ArrowLeft") {
+    go_left();
+  } else if (event.key == "ArrowRight") {
+    go_right();
+  } else if (event.key == "ArrowUp") {
+    rotate();
   }
 });
 
-const rotate90degs = v => p(-v.y, v.x);
-const translateCoord = o => v => p(v.x - o.x, v.y - o.y);
-
 function rotateObj(arr) {
-  let width = 0, height = 0;
-  for(const v of arr) {
-    if(v.x > width) width = v.x;
-    if(v.y > height) height = v.y;
+  const rotate90deg = (v) => p(Math.floor(-v.y), Math.floor(v.x));
+  const translateCoord = (o) => (v) => p(v.x - o.x, v.y - o.y);
+
+  let width = 0,
+    height = 0;
+  for (const v of arr) {
+    if (v.x > width) width = v.x;
+    if (v.y > height) height = v.y;
   }
   const translateFn = translateCoord(p(width / 2, height / 2));
   const iLimit = arr.length;
   const ret = new Array(iLimit);
-  for(let i = 0; i < iLimit; i++) ret[i] = rotate90degs(translateFn(arr[i]));
+  for (let i = 0; i < iLimit; i++) ret[i] = rotate90deg(translateFn(arr[i]));
   return ret;
 }
