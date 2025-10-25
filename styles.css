@@ -1,16 +1,58 @@
 
+:root {
+    --game-area-width: 40vmin;
+    --game-ui-area-width: 20vmin;
+    --game-area-height-scaling: calc(80vmin / var(--game-area-width));
+    --game-ui-height-scaling: calc(80vmin / var(--game-ui-area-width));
+
+    --game-table-width: calc(var(--game-area-width) + var(--game-ui-area-width));
+}
+
 
 * {
     margin: 0;
     padding: 0;
 }
 
-canvas {
-    width: 40vmin;
-    height: 80vmin;
-    display: block;
-    margin: auto;
-    border-style: solid;
+table {
+    border-spacing: 0;
+}
+
+#gameTable {
+    display: inline-block;
+    margin-left: calc(50vw - var(--game-table-width) / 2);
+    width: var(--game-table-width);
+    height: calc(var(--game-area-height-scaling) * var(--game-area-width));
+}
+
+#gameTable > tbody {
+    width: 100%;
+    height: 100%;
+}
+
+#gameTable > tbody > tr {
+    width: 100%;
+    height: 100%;
+}
+
+#gameTable > tbody > tr > td {
     border-color: black;
+    border-width: 1px;
+    border-style: solid;
+}
+
+#gameTable > tbody > tr > td:nth-child(1) {
+    width: var(--game-area-width);
+    height: calc(var(--game-area-height-scaling) * var(--game-area-width));
+}
+
+#gameTable > tbody > tr > td:nth-child(2) {
+    width: var(--game-ui-area-width);
+    height: calc(var(--game-ui-height-scaling) * var(--game-ui-area-width));
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
     border-width: 2px;
 }
