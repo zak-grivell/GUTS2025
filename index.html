@@ -12,7 +12,28 @@
                         <canvas id="game" width="320" height="640"></canvas>
                     </td>
                     <td>
-                        <canvas id="sidebarUI" width="80" height="640"></canvas>
+                        <table id="sidebarUI_table">
+                            <thead>
+                                <img
+                                    id="pixelated_typefont"
+                                    src="assets/Typefonts/pixelated_typefont_spritemap.png"
+                                    style="display: none;"
+                                />
+                                <img
+                                    id="score_background_spritesheet"
+                                    src="assets/Spritesheets/score_backgrounds_spritesheet.png"
+                                    style="display: none;"
+                                />
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td id="scoreCountersContainer">
+                                        <canvas id="scoreCounter" width="128" height="16" class="scoreCounter"></canvas>
+                                        <canvas id="highScoreCounter" width="128" height="16" class="scoreCounter"></canvas>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </td>
                 </tr>
             </tbody>

@@ -56,3 +56,16 @@ canvas {
     height: 100%;
     border-width: 2px;
 }
+
+.scoreCounter {
+    display: block;
+}
+
+#sidebarUI_table {
+    width: 100%;
+    height: 100%;
+}
+
+#sidebarUI_table > tbody > tr {
+    display: block;
+}
