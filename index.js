@@ -18,6 +18,10 @@ function p(x, y) {
   return { x, y };
 }
 
+function v_string(a) {
+  return `${a.x}:${a.y}`;
+}
+
 function v_add(a, b) {
   return { x: a.x + b.x, y: a.y + b.y };
 }
@@ -53,11 +57,7 @@ function render_block(block) {
 }
 
 function render_single(pos, block) {
-  console.log(pos.x, pos.y, block, pos);
-
-  ctx.beginPath(); // Start a new path
-  ctx.rect(pos.x * 16, pos.y * 16, 16, 16); // Add a rectangle to the current path
-  ctx.fill(); // Render the path
+  ctx.drawImage(block.sprite, block.pos.x * 16, block.pos.y * 16, 16, 16);
 }
 
 const X_SIZE = 10;
@@ -65,22 +65,32 @@ const Y_SIZE = 40;
 
 let grid = new Map();
 
+function should_stop(current_down) {
+  if (current_down.pos.y + current_down.size.y == Y_SIZE) {
+    return true;
+  }
+
+  return block_shapes[current_down.t].some((pos) => {
+    let p = v_add(pos, current_down.pos);
+    return grid.has(v_string(v_add(p, { x: 0, y: 1 })));
+  });
+}
+
+let current_down = {
+  t: "I",
+  pos: { x: 0, y: 0 },
+  size: { x: 1, y: 4 },
+};
+
 function on_load() {
   window.requestAnimationFrame(() => {});
-
-  let current_down = {
-    t: "I",
-    pos: { x: 0, y: 0 },
-    size: { x: 1, y: 4 },
-  };
 
   setInterval(() => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (current_down.pos.y + current_down.size.y == Y_SIZE) {
+    if (should_stop(current_down)) {
       block_shapes[current_down.t].forEach((pos) => {
-        console.log(v_add(pos, current_down.pos));
-        grid.set(v_add(pos, current_down.pos), {
+        grid.set(v_string(v_add(pos, current_down.pos)), {
           sprite: images.notgiven,
           pos: v_add(pos, current_down.pos),
         });
@@ -101,3 +111,11 @@ function on_load() {
     current_down.pos.y += 1;
   }, 100);
 }
+
+document.addEventListener("keydown", function (event) {
+  if (event.keyCode == 37) {
+    current_down.pos.x = Math.max(0, current_down.pos.x - 1);
+  } else if (event.keyCode == 39) {
+    current_down.pos.x = Math.min(9, current_down.pos.x + 1);
+  }
+});
