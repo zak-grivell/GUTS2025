@@ -333,3 +333,38 @@ function rotateCurrentBlock() {
 })();
 UI.display();
 */
+
+const ScoreCounterHandler = (function() {
+  const scoreCounterCanvas = document.body.querySelector("#scoreCounter");
+  const scoreCounterCtx = scoreCounterCanvas.getContext("2d");
+  const scoreTypefont = document.body.querySelector("#pixelated_typefont");
+
+  const hsCounterCanvas = document.body.querySelector("#highScoreCounter");
+  const hsCounterCtx = hsCounterCanvas.getContext("2d");
+
+  const scoreBackgrounds = document.body.querySelector("#score_background_spritesheet");
+
+  function drawScore(altCtx, maxLength, bgCeof, score) {
+    let scoreStr = score.toString();
+    if(scoreStr.length > maxLength) scoreStr = '9'.repeat(maxLength);
+    else if(scoreStr.length < maxLength) scoreStr = '0'.repeat(maxLength - scoreStr.length) + scoreStr;
+    for(let i = 0; i < maxLength; i++) {
+      // BEHOLD - MAGIC NUMBERS!
+      altCtx.drawImage(scoreBackgrounds, 16*bgCeof, 0, 16, 16, 16*i, 0, 16, 16);
+      altCtx.drawImage(scoreTypefont, 16*Number(scoreStr[i]), 0, 16, 16, 16*i, 0, 16, 16);
+    }
+  }
+
+  return {
+    setScoreCounter: score => {
+      drawScore(scoreCounterCtx, 8, 0, score)
+    },
+    setHighScoreCounter: score => {
+      drawScore(hsCounterCtx, 8, 1, score)
+    }
+  };
+})();
+
+// Set the score counter and high score counter to initially 0
+ScoreCounterHandler.setScoreCounter(0);
+ScoreCounterHandler.setHighScoreCounter(0);
