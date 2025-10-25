@@ -130,6 +130,12 @@ let current_down = {
   rotation: 0,
 };
 
+function moveCellDown(point) {
+  if (gg(point) == null && gg({})) {
+    return;
+  }
+}
+
 function on_load() {
   setInterval(() => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -144,11 +150,14 @@ function on_load() {
         y_changed.push(pos.y);
       });
 
-      y_changed.forEach((y) => {
+      y_changed.toSorted().forEach((y) => {
         let should_clear = grid[y].every((v) => v != null);
         console.log(should_clear);
 
         if (should_clear) {
+          grid[y].forEach((_, i) => {
+            grid[y][i] = null;
+          });
         }
       });
 
