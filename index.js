@@ -61,19 +61,23 @@ function render_single(pos, block) {
 }
 
 const X_SIZE = 10;
-const Y_SIZE = 40;
+const Y_SIZE = 20;
 
 let grid = new Map();
+
+function check_direction(current_down, direction) {
+  return block_shapes[current_down.t].some((pos) => {
+    let p = v_add(pos, current_down.pos);
+    return grid.has(v_string(v_add(p, direction)));
+  });
+}
 
 function should_stop(current_down) {
   if (current_down.pos.y + current_down.size.y == Y_SIZE) {
     return true;
   }
 
-  return block_shapes[current_down.t].some((pos) => {
-    let p = v_add(pos, current_down.pos);
-    return grid.has(v_string(v_add(p, { x: 0, y: 1 })));
-  });
+  return check_direction(current_down, { x: 0, y: 1 });
 }
 
 let current_down = {
@@ -113,9 +117,12 @@ function on_load() {
 }
 
 document.addEventListener("keydown", function (event) {
-  if (event.keyCode == 37) {
+  if (event.keyCode == 37 && check_direction(current_down, { x: -1, y: 0 })) {
     current_down.pos.x = Math.max(0, current_down.pos.x - 1);
-  } else if (event.keyCode == 39) {
+  } else if (
+    event.keyCode == 39 &&
+    check_direction(current_down, { x: 1, y: 0 })
+  ) {
     current_down.pos.x = Math.min(9, current_down.pos.x + 1);
   }
 });
