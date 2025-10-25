@@ -2,7 +2,9 @@
 let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
 
-let tetris_grid = {};
+function rand_array(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
 
 let images = {
   I: new Image(),
@@ -13,6 +15,8 @@ let images = {
   T: new Image(),
   Z: new Image(),
 };
+
+const grid_size = 32;
 
 function p(x, y) {
   return { x, y };
@@ -29,13 +33,37 @@ function v_add(a, b) {
 let block_types = "IJLOSTZ";
 
 let block_shapes = {
-  I: [p(0, 0), p(0, 1), p(0, 2), p(0, 3)],
-  J: [p(1, 0), p(1, 1), p(1, 2), p(0, 2)],
-  L: [p(0, 0), p(0, 1), p(0, 2), p(1, 2)],
-  O: [p(0, 0), p(0, 1), p(1, 0), p(1, 1)],
-  S: [p(0, 0), p(0, 1), p(1, 1), p(1, 2)],
-  T: [p(1, 0), p(0, 1), p(1, 1), p(1, 2)],
-  Z: [p(1, 0), p(1, 1), p(0, 1), p(0, 2)],
+  I: [
+    [p(0, 0), p(0, 1), p(0, 2), p(0, 3)],
+    [p(0, 0), p(1, 0), p(2, 0), p(3, 0)],
+  ],
+  J: [
+    [p(1, 0), p(1, 1), p(1, 2), p(0, 2)],
+    [p(0, 0), p(0, 1), p(1, 1), p(1, 2)],
+    [p(0, 0), p(1, 0), p(0, 1), p(0, 2)],
+    [p(0, 0), p(1, 0), p(2, 0), p(1, 2)],
+  ],
+  L: [
+    [p(0, 0), p(0, 1), p(0, 2), p(1, 2)],
+    [p(0, 0), p(0, 1), p(1, 0), p(2, 0)],
+    [p(0, 0), p(1, 0), p(1, 1), p(1, 2)],
+    [p(0, 1), p(1, 1), p(1, 2), p(2, 0)],
+  ],
+  O: [[p(0, 0), p(0, 1), p(1, 0), p(1, 1)]],
+  S: [
+    [p(0, 0), p(0, 1), p(1, 1), p(1, 2)],
+    [p(0, 1), p(1, 1), p(1, 0), p(2, 0)],
+  ],
+  T: [
+    [p(1, 0), p(0, 1), p(1, 1), p(1, 2)],
+    [p(0, 1), p(1, 1), p(1, 0), p(2, 1)],
+    [p(0, 0), p(0, 1), p(0, 2), p(1, 1)],
+    [p(0, 0), p(1, 0), p(2, 0), p(1, 1)],
+  ],
+  Z: [
+    [p(1, 0), p(1, 1), p(0, 1), p(0, 2)],
+    [p(0, 0), p(1, 0), p(1, 1), p(2, 1)],
+  ],
 };
 
 Object.keys(images).forEach((k) => {
@@ -47,82 +75,119 @@ images.notgiven = new Image();
 images.notgiven.src = "assets/notgiven.png";
 
 function render_block(block) {
-  ctx.drawImage(
-    images[block.t],
-    block.pos.x * 16,
-    block.pos.y * 16,
-    block.size.x * 16,
-    block.size.y * 16,
-  );
+  block_shapes[block.t][block.rotation].forEach((offset) => {
+    let p = v_add(block.pos, offset);
+
+    ctx.drawImage(
+      images.notgiven,
+      p.x * grid_size,
+      p.y * grid_size,
+      grid_size,
+      grid_size,
+    );
+  });
 }
 
 function render_single(pos, block) {
-  ctx.drawImage(block.sprite, block.pos.x * 16, block.pos.y * 16, 16, 16);
+  ctx.drawImage(
+    block.sprite,
+    block.pos.x * grid_size,
+    block.pos.y * grid_size,
+    grid_size,
+    grid_size,
+  );
 }
 
 const X_SIZE = 10;
 const Y_SIZE = 20;
 
-let grid = new Map();
+let grid = Array.apply(null, Array(Y_SIZE)).map(() =>
+  Array(X_SIZE).map(() => null),
+);
 
-function check_direction(current_down, direction) {
-  return block_shapes[current_down.t].some((pos) => {
-    let p = v_add(pos, current_down.pos);
-    return grid.has(v_string(v_add(p, direction)));
+function gg(point) {
+  grid[point.y][point.x];
+}
+
+function gs(point, val) {
+  grid[point.y][point.x] = val;
+}
+
+function check_direction(current_down, direction, rotation) {
+  return block_shapes[current_down.t][rotation].some((pos) => {
+    let p = v_add(v_add(pos, current_down.pos), direction);
+
+    if (p.x < 0 || p.y >= Y_SIZE || p.x >= X_SIZE) {
+      return true;
+    }
+    return gg(p) != null;
   });
 }
 
-function should_stop(current_down) {
-  if (current_down.pos.y + current_down.size.y == Y_SIZE) {
-    return true;
-  }
-
-  return check_direction(current_down, { x: 0, y: 1 });
-}
-
 let current_down = {
-  t: "I",
-  pos: { x: 0, y: 0 },
-  size: { x: 1, y: 4 },
+  t: rand_array(block_types),
+  pos: { x: X_SIZE / 2, y: 0 },
+  rotation: 0,
 };
 
 function on_load() {
-  window.requestAnimationFrame(() => {});
-
   setInterval(() => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (should_stop(current_down)) {
-      block_shapes[current_down.t].forEach((pos) => {
-        grid.set(v_string(v_add(pos, current_down.pos)), {
+    if (check_direction(current_down, { x: 0, y: 1 }, current_down.rotation)) {
+      const y_changed = [];
+      block_shapes[current_down.t][current_down.rotation].forEach((pos) => {
+        gs(v_add(pos, current_down.pos), {
           sprite: images.notgiven,
           pos: v_add(pos, current_down.pos),
         });
+        y_changed.push(pos.y);
+      });
+
+      y_changed.forEach((y) => {
+        let should_clear = grid[y].every((v) => v != null);
+        console.log(should_clear);
+
+        if (should_clear) {
+        }
       });
 
       current_down = {
-        t: "O",
-        pos: { x: 0, y: 0 },
-        size: { x: 2, y: 2 },
+        t: rand_array(block_types),
+        pos: { x: X_SIZE / 2, y: 0 },
+        rotation: 0,
       };
     }
 
-    grid.forEach((k, v) => render_single(v, k));
-
-    // console.log(grid);
+    grid.forEach((row, y) =>
+      row.forEach((item, x) => render_single({ x, y }, item)),
+    );
 
     render_block(current_down);
     current_down.pos.y += 1;
-  }, 100);
+  }, 200);
 }
 
 document.addEventListener("keydown", function (event) {
-  if (event.keyCode == 37 && check_direction(current_down, { x: -1, y: 0 })) {
-    current_down.pos.x = Math.max(0, current_down.pos.x - 1);
-  } else if (
-    event.keyCode == 39 &&
-    check_direction(current_down, { x: 1, y: 0 })
+  let next_rot =
+    (current_down.rotation + 1) % block_shapes[current_down.t].length;
+
+  if (
+    event.key == "ArrowLeft" &&
+    !check_direction(current_down, { x: -1, y: 0 }, current_down.rotation)
   ) {
+    current_down.pos.x = Math.max(0, current_down.pos.x - 1);
+    console.log("left");
+  } else if (
+    event.key == "ArrowRight" &&
+    !check_direction(current_down, { x: 1, y: 0 }, current_down.rotation)
+  ) {
+    console.log("right");
     current_down.pos.x = Math.min(9, current_down.pos.x + 1);
+  } else if (
+    event.key == "ArrowUp" &&
+    !check_direction(current_down, { x: 0, y: 0 }, next_rot)
+  ) {
+    current_down.rotation = next_rot;
   }
 });
