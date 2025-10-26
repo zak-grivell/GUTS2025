@@ -204,6 +204,7 @@ function spawn_block() {
 let score = 0;
 
 function gameOver() {
+  draw_grid();
   ctx.font = "32px 'Press Start 2P'";
 
   ctx.fillText("Oh No", 90, 100);
@@ -220,16 +221,7 @@ function gameOver() {
   playing = false;
 }
 
-let next_interval = 300;
-let fast_frame = false;
-
-function process() {
-  if (!playing) {
-    return;
-  }
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+function draw_grid() {
   ctx.save();
 
   for (let i = 0; i < X_SIZE; i++) {
@@ -247,6 +239,19 @@ function process() {
   ctx.stroke();
 
   ctx.restore();
+}
+
+let next_interval = 300;
+let fast_frame = false;
+
+function process() {
+  if (!playing) {
+    return;
+  }
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  draw_grid();
 
   let can_move_down = check_direction(
     current_down,
@@ -345,6 +350,7 @@ function startGame() {
 canvas.addEventListener("click", startGame);
 
 function on_load() {
+  draw_grid();
   ctx.font = "32px 'Press Start 2P'";
 
   ctx.fillText("Click", 90, 200);
