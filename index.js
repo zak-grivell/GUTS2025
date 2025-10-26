@@ -68,9 +68,9 @@ let block_shapes = {
   J: [[p(1, 0), p(1, 1), p(1, 2), p(0, 2)]],
   L: [[p(0, 0), p(0, 1), p(0, 2), p(1, 2)]],
   O: [[p(0, 0), p(0, 1), p(1, 0), p(1, 1)]],
-  S: [[p(0, 0), p(0, 1), p(1, 1), p(1, 2)]],
-  T: [[p(1, 0), p(0, 1), p(1, 1), p(1, 2)]],
-  Z: [[p(1, 0), p(1, 1), p(0, 1), p(0, 2)]],
+  S: [[p(1, 0), p(2, 0), p(1, 1), p(0, 1)]],
+  T: [[p(0, 1), p(1, 1), p(2, 1), p(1, 0)]],
+  Z: [[p(0, 0), p(1, 0), p(1, 1), p(2, 1)]],
 };
 
 Object.keys(images).forEach((k) => {
@@ -369,10 +369,10 @@ function rotate() {
 
   let next_shape = next_rot.map((v) => v[1]);
 
-  current_down.angle = (current_down.angle + 90) % 360;
-
   if (!check_direction(current_down, { x: 0, y: 0 }, next_shape)) {
     AudioHandler.playSoundOnce("block_rotated_swoosh");
+
+    current_down.angle = (current_down.angle + 90) % 360;
 
     current_down.shape = next_shape;
 
