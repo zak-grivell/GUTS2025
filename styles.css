@@ -63,6 +63,12 @@ table {
     /*margin-left: calc(50vw - var(--game-table-width) / 2);*/
     width: var(--game-table-width);
     height: calc(var(--game-area-height-scaling) * var(--game-area-width));
+
+    /*border-radius: 20px;
+    border-color: navy;
+    border-style: solid;
+    background-clip: true;
+    border-width: 5px;*/
 }
 
 #gameTable > tbody {
@@ -75,9 +81,11 @@ table {
     height: 100%;
 }
 
-#gameTable > tbody > tr > td {
-    border-color: black;
-    border-width: 1px;
+#gameTable > tbody > tr > td:not(.handle) {
+    border-color: navy;
+    background-color: papayawhip;
+    border-width: 5px;
+    border-radius: 10px;
     border-style: solid;
 }
 
