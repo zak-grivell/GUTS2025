@@ -576,7 +576,6 @@ canvas.addEventListener(
 );
 
 function handleGesure() {
-  var swiped = "swiped: ";
   if (touchendX < touchstartX) {
     go_left();
   }
