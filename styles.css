@@ -14,13 +14,35 @@
     padding: 0;
 }
 
+body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+    margin: 20px;
+}
+
+@media (max-width: 1250px) {
+    body {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        align-items: center;
+        align-self: center;
+        align-content: center;
+        justify-self: center;
+    }
+
+    #gameTable {
+        justify-self: center;
+    }
+}
+
 table {
     border-spacing: 0;
 }
 
 #gameTable {
     display: inline-block;
-    margin-left: calc(50vw - var(--game-table-width) / 2);
+    /*margin-left: calc(50vw - var(--game-table-width) / 2);*/
     width: var(--game-table-width);
     height: calc(var(--game-area-height-scaling) * var(--game-area-width));
 }
@@ -86,7 +108,7 @@ p {
 }
 
 h1 {
-    font-size: 80px;
+    font-size: 150px;
     margin-top: 40px;
 }
 

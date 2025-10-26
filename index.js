@@ -7,6 +7,10 @@ function rand_array(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+let current_down;
+
+let playing = false;
+
 let images = {
   I: new Image(),
   J: new Image(),
@@ -16,6 +20,14 @@ let images = {
   T: new Image(),
   Z: new Image(),
 };
+
+function draw_next_block() {
+  document.getElementById("next_block").src = `assets/${nextBlock}.png`;
+}
+
+let block_types = "IJLOSTZ";
+
+let nextBlock = rand_array(block_types);
 
 const grid_size = 32;
 
@@ -51,58 +63,19 @@ function v_eq(a, b) {
   return a.x == b.x && a.y == b.y;
 }
 
-let block_types = "IJLOSTZ";
-
-let running = false;
-
 let block_shapes = {
-  I: [
-    [p(0, 0), p(0, 1), p(0, 2), p(0, 3)],
-    // [p(0, 0), p(1, 0), p(2, 0), p(3, 0)],
-  ],
-  J: [
-    [p(1, 0), p(1, 1), p(1, 2), p(0, 2)],
-    // [p(0, 0), p(0, 1), p(1, 1), p(1, 2)],
-    // [p(0, 0), p(1, 0), p(0, 1), p(0, 2)],
-    // [p(0, 0), p(1, 0), p(2, 0), p(1, 2)],
-  ],
-  L: [
-    [p(0, 0), p(0, 1), p(0, 2), p(1, 2)],
-    // [p(0, 0), p(0, 1), p(1, 0), p(2, 0)],
-    // [p(0, 0), p(1, 0), p(1, 1), p(1, 2)],
-    // [p(0, 1), p(1, 1), p(1, 2), p(2, 0)],
-  ],
+  I: [[p(0, 0), p(0, 1), p(0, 2), p(0, 3)]],
+  J: [[p(1, 0), p(1, 1), p(1, 2), p(0, 2)]],
+  L: [[p(0, 0), p(0, 1), p(0, 2), p(1, 2)]],
   O: [[p(0, 0), p(0, 1), p(1, 0), p(1, 1)]],
-  S: [
-    [p(0, 0), p(0, 1), p(1, 1), p(1, 2)],
-    // [p(0, 1), p(1, 1), p(1, 0), p(2, 0)],
-  ],
-  T: [
-    [p(1, 0), p(0, 1), p(1, 1), p(1, 2)],
-    // [p(0, 1), p(1, 1), p(1, 0), p(2, 1)],
-    // [p(0, 0), p(0, 1), p(0, 2), p(1, 1)],
-    // [p(0, 0), p(1, 0), p(2, 0), p(1, 1)],
-  ],
-  Z: [
-    [p(1, 0), p(1, 1), p(0, 1), p(0, 2)],
-    // [p(0, 0), p(1, 0), p(1, 1), p(2, 1)],
-  ],
+  S: [[p(0, 0), p(0, 1), p(1, 1), p(1, 2)]],
+  T: [[p(1, 0), p(0, 1), p(1, 1), p(1, 2)]],
+  Z: [[p(1, 0), p(1, 1), p(0, 1), p(0, 2)]],
 };
 
 Object.keys(images).forEach((k) => {
   images[k].src = `assets/${k}.png`;
 });
-
-images.notgiven = new Image();
-
-images.notgiven.src = "assets/cube.png";
-
-let rotation_offsets = {
-  0: { x: 0, y: -1 },
-  90: { x: 0, y: 0 },
-  180: { x: 0, y: 0 },
-  270: { x: 0, y: 0 },
-};
 
 function sprite_map_get(sprit_map, offset) {
   for (const item of sprit_map) {
@@ -117,21 +90,13 @@ function sprite_map_get(sprit_map, offset) {
 function render_block(block) {
   block.shape.forEach((offset) => {
     ctx.save();
-
     let p = v_add(block.pos, offset);
-
     let sp_map = sprite_map_get(block.sprite_map, offset);
-
     ctx.translate(
       p.x * grid_size + grid_size / 2,
       p.y * grid_size + grid_size / 2,
     );
-
-    console.log(block.angle);
-
-    // rotate the canvas to the specified degrees
     ctx.rotate((block.angle * Math.PI) / 180);
-
     ctx.drawImage(
       images[block.t],
       sp_map.x * 16,
@@ -143,23 +108,17 @@ function render_block(block) {
       grid_size,
       grid_size,
     );
-
     ctx.restore();
   });
 }
 
 function render_single(pos, block) {
   ctx.save();
-
-  // move to the center of the canvas
   ctx.translate(
     pos.x * grid_size + grid_size / 2,
     pos.y * grid_size + grid_size / 2,
   );
-
-  // rotate the canvas to the specified degrees
   ctx.rotate((block.angle * Math.PI) / 180);
-
   ctx.drawImage(
     block.sprite,
     block.sprite_offset.x * 16,
@@ -171,8 +130,6 @@ function render_single(pos, block) {
     grid_size,
     grid_size,
   );
-
-  // we’re done with the rotating so restore the unrotated context
   ctx.restore();
 }
 
@@ -187,7 +144,6 @@ function gg(point) {
   try {
     return grid[point.y][point.x];
   } catch (e) {
-    console.log(point);
     throw e;
   }
 }
@@ -232,15 +188,17 @@ function add_cube(position, sprite, sprite_offset, angle) {
 }
 
 function spawn_block() {
-  let next_shape = rand_array(block_types);
-
   current_down = {
-    t: next_shape,
-    pos: { x: X_SIZE / 2 + middle_offsets[next_shape], y: -4 },
-    shape: block_shapes[next_shape][0],
-    sprite_map: block_shapes[next_shape][0].map((v) => [v, v]),
+    t: nextBlock,
+    pos: { x: X_SIZE / 2 + middle_offsets[nextBlock], y: -4 },
+    shape: block_shapes[nextBlock][0],
+    sprite_map: block_shapes[nextBlock][0].map((v) => [v, v]),
     angle: 0,
   };
+
+  nextBlock = rand_array(block_types);
+
+  draw_next_block(nextBlock);
 }
 
 let score = 0;
@@ -259,10 +217,33 @@ function gameOver() {
 
   ctx.font = "28px 'Press Start 2P'";
   ctx.fillText("Try Again?", 15, 550);
+  playing = false;
 }
 
 function process() {
+  if (!playing) {
+    return;
+  }
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+
+  for (let i = 0; i < X_SIZE; i++) {
+    ctx.moveTo(i * grid_size, 0);
+    ctx.lineTo(i * grid_size, Y_SIZE * grid_size);
+  }
+
+  for (let j = 0; j < Y_SIZE; j++) {
+    ctx.moveTo(0, j * grid_size);
+    ctx.lineTo(X_SIZE * grid_size, j * grid_size);
+  }
+
+  ctx.strokeStyle = "grey";
+
+  ctx.stroke();
+
+  ctx.restore();
 
   let can_move_down = check_direction(
     current_down,
@@ -271,6 +252,7 @@ function process() {
   );
 
   if (can_move_down) {
+    AudioHandler.playSoundOnce("block_placed");
     let cube_positions = current_down.shape.map((pos) =>
       v_add(pos, current_down.pos),
     );
@@ -295,10 +277,17 @@ function process() {
       .toSorted((a, b) => b - a)
       .filter(rowFull);
 
+    if (to_clear.length > 2) {
+      AudioHandler.playSoundOnce("lines_cleared_large");
+    } else if (to_clear.length > 0) {
+      AudioHandler.playSoundOnce("lines_cleared_small");
+    }
+
     to_clear.forEach(clearRow);
     to_clear.forEach(() => {
       grid.unshift(Array.from({ length: X_SIZE }).map(() => null));
       score += 100;
+      ScoreCounterHandler.setScoreCounter(score);
     });
 
     spawn_block();
@@ -318,17 +307,27 @@ function process() {
   current_down.pos.y += 1;
 }
 
-canvas.addEventListener("click", () => {
+let current_audio = null;
+
+function startGame() {
+  if (current_audio) {
+    current_audio.stop();
+  }
+  let sound = rand_array(["bg_music_1", "bg_music_2"]);
+  current_audio = AudioHandler.playSoundLoop(sound);
+
   grid = Array.from({ length: Y_SIZE + 1 }, () =>
     Array.from({ length: X_SIZE }, () => null),
   );
 
   spawn_block();
 
-  running = true;
+  playing = true;
 
-  setInterval(process, 20);
-});
+  setInterval(process, 200);
+}
+
+canvas.addEventListener("click", startGame);
 
 function on_load() {
   ctx.font = "32px 'Press Start 2P'";
@@ -358,17 +357,14 @@ function rotate() {
   current_down.angle = (current_down.angle + 90) % 360;
 
   if (!check_direction(current_down, { x: 0, y: 0 }, next_shape)) {
+    AudioHandler.playSoundOnce("block_rotated_swoosh");
+
     current_down.shape = next_shape;
 
     current_down.sprite_map.forEach(([image_position, stored_last_map], i) => {
-      console.log(current_down.sprit_map, i, current_down.sprite_map[i]);
       next_rot.forEach(([from, to]) => {
-        console.log(from);
-
-        console.log(from, stored_last_map);
         if (v_eq(from, stored_last_map)) {
           current_down.sprite_map[i] = [image_position, to];
-          console.log("updating_sprit");
         }
       });
     });
@@ -399,133 +395,6 @@ function rotateObj(arr) {
 
   return arr.map((val) => [val, rotate90deg(translateFn(val))]);
 }
-
-// TODO - implement method
-function rotateCurrentBlock() {
-  console.log("MUHAHHAH");
-  throw new Error("Not implemented yet");
-}
-
-// UI Code
-/*const UI = (function() {
-  const uiCanvas = document.body.querySelector("#sidebarUI");
-  const uiCtx = uiCanvas.getContext("2d");
-
-  class UI_Elem {
-    constructor(size, displayFn) {
-      this.size = size;
-      this.display = displayFn;
-    }
-  }
-
-  class UI_Button extends UI_Elem {
-    constructor(size, displayFn, onClickFn) {
-      super(size, displayFn);
-      this.onClick = onClickFn();
-    }
-  }
-
-  class UI_Text extends UI_Elem {
-    constructor(size, displayFn, font, text) {
-      super(size, displayFn);
-      this.font = font;
-      this.text = text;
-    }
-    static defaultDisplay(obj) {
-      const ret = () => {
-        uiCtx.font = this.font;
-        const bounds = UI_Grid.getPosBounds();
-        uiCtx.fillText(this.text,);
-      }
-      ret.bind(obj);
-      return ret;
-    }
-  }
-
-  class Bounds {
-    constructor(p1, p2) {
-      this.p1 = p1;
-      this.p2 = p2;
-    }
-  }
-
-  class UI_Row {
-    constructor(height, elems) {
-      this.height = height;
-      this.elems = elems;
-    }
-  }
-
-  // Create UI grid
-  const UI_Grid = {
-    grid: [],
-    rowSizes: {},
-    rowCount: 0,
-    totalRowWeight: 0,
-    isRowEmpty: row => row >= UI_Grid.grid.length,
-    createRow: (height) => {
-      if(UI.isRowEmpty(row)) {
-        UI_Grid.grid.push(new UI_Row(height, []));
-        UI_Grid.rowSizes[row] = 0;
-        UI_Grid.rowCount += 1;
-        UI_Grid.totalRowWeight += height;
-      }else throw new Error("Row already created");
-      return {
-        add: elem => UI_Grid.add(elem, row)
-      };
-    },
-    add: (elem, row) => {
-      function inner(x) {
-        UI_Grid.grid[row].push(x);
-        UI_Grid.rowSizes[row] += 1;
-      }
-      if(UI_Grid.isRowEmpty(row)) {
-        throw new Error("Cannot add elements to a non-existent row");
-      }else inner(elem);
-      return {
-        then: inner,
-        thenOnRow: UI_Grid.add,
-        createRow: UI_Grid.createRow
-      }
-    },
-    getPosBounds: (row, col) => {
-      if(UI_Grid.isRowEmpty(row)) throw new Error("Cannot get position bounds of non-existent row");
-    },
-    display: () => {
-      Object.keys(UI_Grid.grid).forEach(k => {
-        for(const elem of UI_Grid[k]) elem.display();
-      });
-    }
-  };
-
-  // Create game UI
-
-  // Initialise score counter to 0
-  const scoreText = new UI_Text(1, UI_Text.defaultDisplay, "Score");
-  const scoreTextDynamic = new UI_Text(1, UI_Text.defaultDisplay, "0");
-  // Button for rotating the block (to make it clear that it can be rotated)
-  const rotateButton = new UI_Button(1, () => {}, rotateCurrentBlock);
-
-  // Add UI
-  UI_Grid
-    .createRow(1)
-    .add(scoreText)
-    .then(scoreTextDynamic)
-    .createRow(6)
-    .add(new UI_Elem(1, () => {}))
-    .createRow(1)
-    .then(rotateButton);
-
-  return {
-    display: () => {
-      // Display the entire grid
-      UI_Grid.display()
-    },
-    updateScore: () => {}
-  };
-})();
-UI.display();
-*/
 
 const ScoreCounterHandler = (function () {
   const scoreCounterCanvas = document.body.querySelector("#scoreCounter");
@@ -581,35 +450,52 @@ const ScoreCounterHandler = (function () {
   };
 })();
 
+function get_high_score() {
+  return parseInt(localStorage.getItem("high_score") ?? "0");
+}
+
+function set_if_high_score(score) {
+  if (score > get_high_score()) {
+    localStorage.setItem("high_score", score);
+  }
+}
+
 // Set the score counter and high score counter to initially 0
 ScoreCounterHandler.setScoreCounter(0);
-ScoreCounterHandler.setHighScoreCounter(0);
+ScoreCounterHandler.setHighScoreCounter(get_high_score());
 
-const AudioHandler = (function() {
+const AudioHandler = (function () {
   const sounds = {};
-  
+
   function registerSoundInner(alias, filename) {
     // Always get sounds from the sounds folder
-    filename = "assets/Sounds/" + filename
-    if(alias in sounds) throw new Error(`{alias} is already a registered sound`);
+    filename = "assets/Sounds/" + filename;
+    if (alias in sounds)
+      throw new Error(`{alias} is already a registered sound`);
     sounds[alias] = new Audio(filename);
     return {
-      then: registerSoundInner
-    }
+      then: registerSoundInner,
+    };
   }
 
-  function playSoundOnceInner(alias, volume=1.0) {
-    if(!(alias in sounds)) throw new Error(`{alias} is not a registered sound`);
+  function playSoundOnceInner(alias, volume = 1.0) {
+    if (!(alias in sounds))
+      throw new Error(`{alias} is not a registered sound`);
     sounds[alias].volume = volume;
-    sounds[alias].play();
+    if (sounds[alias].paused) {
+      sounds[alias].play();
+    } else {
+      sounds[alias].currentTime = 0;
+    }
     return {
       thenOnce: playSoundOnceInner,
-      thenLoop: playSoundLoopInner
-    }
+      thenLoop: playSoundLoopInner,
+    };
   }
 
-  function playSoundLoopInner(alias, volume=1.0) {
-    if(!(alias in sounds)) throw new Error(`{alias} is not a registered sound`);
+  function playSoundLoopInner(alias, volume = 1.0) {
+    if (!(alias in sounds))
+      throw new Error(`{alias} is not a registered sound`);
     const sfx = sounds[alias];
     sfx.volume = volume;
     sfx.loop = true;
@@ -621,20 +507,19 @@ const AudioHandler = (function() {
         sfx.loop = false;
         sfx.pause();
         sfx.currentTime = 0;
-      }
+      },
     };
   }
 
   return {
     registerSound: registerSoundInner,
     playSoundOnce: playSoundOnceInner,
-    playSoundLoop: playSoundLoopInner
+    playSoundLoop: playSoundLoopInner,
   };
 })();
 
 // Register sounds vvv
-AudioHandler
-  .registerSound("game_over", "SFX/Game Over/game-over-sound.mp3")
+AudioHandler.registerSound("game_over", "SFX/Game Over/game-over-sound.mp3")
   .then("lines_cleared_small", "SFX/Lines Cleared/lines-cleared-small.mp3")
   .then("lines_cleared_big", "SFX/Lines Cleared/lines-cleared-big.mp3")
   .then("block_placed", "SFX/Placing/placing-pop.mp3")

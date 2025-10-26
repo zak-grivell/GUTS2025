@@ -23,16 +23,18 @@
             <p style="color: #009ffd; font-family: &quot;Press Start 2P&quot;">
                 Oh no! It looks like this page can't be found
             </p>
-            <p
-                style="
-                    color: rgba(255, 164, 0, 1);
-                    font-family: &quot;Press Start 2P&quot;;
-                "
-            >
+            <p style="font-family: &quot;Press Start 2P&quot;">
                 Since you are already here would you mind helping pack my
                 suitcase :)
             </p>
-            <div></div>
+            <p style="font-family: &quot;Press Start 2P&quot;">
+                I only packed for one weekend away but it seems my suitcase
+                cannot fit all my stuff unless i pack it perfectly
+            </p>
+
+            <p style="font-family: &quot;Press Start 2P&quot;">
+                Made by Oliver, Leia, Jina & Zak
+            </p>
         </header>
 
         <table id="gameTable">
@@ -47,44 +49,95 @@
                                 <img
                                     id="pixelated_typefont"
                                     src="assets/Typefonts/pixelated_typefont_spritemap.png"
-                                    style="display: none;"
+                                    style="display: none"
                                 />
                                 <img
                                     id="score_background_spritesheet"
                                     src="assets/Spritesheets/score_backgrounds_spritesheet.png"
-                                    style="display: none;"
+                                    style="display: none"
                                 />
                             </thead>
-                            <tbody>
+                            <tbody
+                                style="
+                                    display: flex;
+                                    flex-direction: column;
+                                    justify-content: space-between;
+                                "
+                            >
                                 <tr>
                                     <td id="scoreCountersContainer">
                                         <div
                                             class="score_txt"
-                                            style="color: #009ffd; font-family: &quot;Press Start 2P&quot;"
+                                            style="
+                                                color: #009ffd;
+                                                font-family: &quot;Press Start 2P&quot;;
+                                            "
                                         >
                                             Score
                                         </div>
-                                        <canvas id="scoreCounter" width="128" height="16" class="scoreCounter"></canvas>
+                                        <canvas
+                                            id="scoreCounter"
+                                            width="128"
+                                            height="16"
+                                            class="scoreCounter"
+                                        ></canvas>
                                         <div
                                             class="score_txt"
-                                            style="color: rgba(255, 164, 0, 1);font-family: &quot;Press Start 2P&quot;;"
+                                            style="
+                                                color: rgba(255, 164, 0, 1);
+                                                font-family: &quot;Press Start 2P&quot;;
+                                            "
                                         >
                                             High Score
                                         </div>
-                                        <canvas id="highScoreCounter" width="128" height="16" class="scoreCounter"></canvas>
+                                        <canvas
+                                            id="highScoreCounter"
+                                            width="128"
+                                            height="16"
+                                            class="scoreCounter"
+                                        ></canvas>
                                     </td>
                                 </tr>
-                                <tr id="sidebarWhitespace">
-                                    <td></td>
-                                </tr>
                                 <tr>
-                                    <td>
+                                    <td
+                                        style="
+                                            display: flex;
+                                            flex-direction: column;
+                                        "
+                                    >
+                                        <div
+                                            style="
+                                                display: flex;
+                                                justify-content: center;
+                                                margin-bottom: 20px;
+                                            "
+                                        >
+                                            <h3
+                                                style="
+                                                    color: #009ffd;
+                                                    font-family: &quot;Press Start 2P&quot;;
+                                                "
+                                            >
+                                                Next
+                                            </h3>
+                                        </div>
+                                        <div
+                                            style="
+                                                display: flex;
+                                                justify-content: center;
+                                                margin-bottom: 20px;
+                                            "
+                                        >
+                                            <img id="next_block" height="128" />
+                                        </div>
+
                                         <img
                                             src="assets/Rotation Button/rotation_button_2.png"
                                             width="16"
                                             height="16"
+                                            style="margin-bottom: 20px"
                                             id="rotation_button"
-                                            onclick="rotateCurrentBlock()"
+                                            onclick="rotate()"
                                         />
                                     </td>
                                 </tr>
