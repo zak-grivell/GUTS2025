@@ -58,8 +58,34 @@
                             <tbody>
                                 <tr>
                                     <td id="scoreCountersContainer">
+                                        <div
+                                            class="score_txt"
+                                            style="color: #009ffd; font-family: &quot;Press Start 2P&quot;"
+                                        >
+                                            Score
+                                        </div>
                                         <canvas id="scoreCounter" width="128" height="16" class="scoreCounter"></canvas>
+                                        <div
+                                            class="score_txt"
+                                            style="color: rgba(255, 164, 0, 1);font-family: &quot;Press Start 2P&quot;;"
+                                        >
+                                            High Score
+                                        </div>
                                         <canvas id="highScoreCounter" width="128" height="16" class="scoreCounter"></canvas>
+                                    </td>
+                                </tr>
+                                <tr id="sidebarWhitespace">
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <img
+                                            src="assets/Rotation Button/rotation_button_2.png"
+                                            width="16"
+                                            height="16"
+                                            id="rotation_button"
+                                            onclick="rotateCurrentBlock()"
+                                        />
                                     </td>
                                 </tr>
                             </tbody>

@@ -290,6 +290,7 @@ function rotateObj(arr) {
 
 // TODO - implement method
 function rotateCurrentBlock() {
+  console.log("MUHAHHAH");
   throw new Error("Not implemented yet");
 }
 
@@ -448,3 +449,61 @@ const ScoreCounterHandler = (function() {
 // Set the score counter and high score counter to initially 0
 ScoreCounterHandler.setScoreCounter(0);
 ScoreCounterHandler.setHighScoreCounter(0);
+
+const AudioHandler = (function() {
+  const sounds = {};
+  
+  function registerSoundInner(alias, filename) {
+    // Always get sounds from the sounds folder
+    filename = "assets/Sounds/" + filename
+    if(alias in sounds) throw new Error(`{alias} is already a registered sound`);
+    sounds[alias] = new Audio(filename);
+    return {
+      then: registerSoundInner
+    }
+  }
+
+  function playSoundOnceInner(alias, volume=1.0) {
+    if(!(alias in sounds)) throw new Error(`{alias} is not a registered sound`);
+    sounds[alias].volume = volume;
+    sounds[alias].play();
+    return {
+      thenOnce: playSoundOnceInner,
+      thenLoop: playSoundLoopInner
+    }
+  }
+
+  function playSoundLoopInner(alias, volume=1.0) {
+    if(!(alias in sounds)) throw new Error(`{alias} is not a registered sound`);
+    const sfx = sounds[alias];
+    sfx.volume = volume;
+    sfx.loop = true;
+    sfx.play();
+    return {
+      thenOnce: playSoundOnceInner,
+      thenLoop: playSoundLoopInner,
+      stop: () => {
+        sfx.loop = false;
+        sfx.pause();
+        sfx.currentTime = 0;
+      }
+    };
+  }
+
+  return {
+    registerSound: registerSoundInner,
+    playSoundOnce: playSoundOnceInner,
+    playSoundLoop: playSoundLoopInner
+  };
+})();
+
+// Register sounds vvv
+AudioHandler
+  .registerSound("game_over", "SFX/Game Over/game-over-sound.mp3")
+  .then("lines_cleared_small", "SFX/Lines Cleared/lines-cleared-small.mp3")
+  .then("lines_cleared_big", "SFX/Lines Cleared/lines-cleared-big.mp3")
+  .then("block_placed", "SFX/Placing/placing-pop.mp3")
+  .then("block_rotated_pop", "SFX/Rotating/rotating-pop.mp3")
+  .then("block_rotated_swoosh", "SFX/Rotating/rotating-swoosh.mp3")
+  .then("bg_music_1", "Background Music/bg-music-1.mp3")
+  .then("bg_music_2", "Background Music/bg-music-2.mp3");
