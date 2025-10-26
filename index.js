@@ -548,3 +548,48 @@ AudioHandler.registerSound("game_over", "SFX/Game Over/game-over-sound.mp3")
   .then("block_rotated_swoosh", "SFX/Rotating/rotating-swoosh.mp3")
   .then("bg_music_1", "Background Music/bg-music-1.mp3")
   .then("bg_music_2", "Background Music/bg-music-2.mp3");
+
+// Shameless used https://gist.github.com/SleepWalker/da5636b1abcbaff48c4d
+
+var touchstartX = 0;
+var touchstartY = 0;
+var touchendX = 0;
+var touchendY = 0;
+
+canvas.addEventListener(
+  "touchstart",
+  function (event) {
+    touchstartX = event.screenX;
+    touchstartY = event.screenY;
+  },
+  false,
+);
+
+canvas.addEventListener(
+  "touchend",
+  function (event) {
+    touchendX = event.screenX;
+    touchendY = event.screenY;
+    handleGesure();
+  },
+  false,
+);
+
+function handleGesure() {
+  var swiped = "swiped: ";
+  if (touchendX < touchstartX) {
+    go_left();
+  }
+  if (touchendX > touchstartX) {
+    go_right();
+  }
+  if (touchendY < touchstartY) {
+    goFaster();
+  }
+  if (touchendY > touchstartY) {
+    rotate();
+  }
+  if (touchendY == touchstartY) {
+    rotate();
+  }
+}
