@@ -21,6 +21,20 @@ body {
     margin: 20px;
 }
 
+h1,
+p {
+    text-align: center;
+}
+
+h1 {
+    font-size: 150px;
+    margin-top: 40px;
+}
+
+p {
+    padding-bottom: 20px;
+}
+
 @media (max-width: 1250px) {
     body {
         grid-template-columns: 1fr;
@@ -33,6 +47,10 @@ body {
 
     #gameTable {
         justify-self: center;
+    }
+
+    h1 {
+        font-size: 80px;
     }
 }
 
@@ -100,20 +118,6 @@ canvas {
 
 #sidebarUI_table > tbody > tr > td {
     display: block;
-}
-
-h1,
-p {
-    text-align: center;
-}
-
-h1 {
-    font-size: 150px;
-    margin-top: 40px;
-}
-
-p {
-    padding-bottom: 20px;
 }
 
 .score_txt {

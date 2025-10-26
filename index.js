@@ -220,6 +220,9 @@ function gameOver() {
   playing = false;
 }
 
+let next_interval = 300;
+let fast_frame = false;
+
 function process() {
   if (!playing) {
     return;
@@ -284,6 +287,7 @@ function process() {
     }
 
     to_clear.forEach(clearRow);
+    to_clear.forEach(() => (next_interval = Math.min(next_interval - 5, 150)));
     to_clear.forEach(() => {
       grid.unshift(Array.from({ length: X_SIZE }).map(() => null));
       score += 100;
@@ -305,6 +309,15 @@ function process() {
   // render the falling block
   render_block(current_down);
   current_down.pos.y += 1;
+
+  next_frame();
+}
+
+function next_frame() {
+  setTimeout(process, fast_frame ? 50 : next_interval);
+  if (fast_frame) {
+    fast_frame = false;
+  }
 }
 
 let current_audio = null;
@@ -324,7 +337,9 @@ function startGame() {
 
   playing = true;
 
-  setInterval(process, 200);
+  setTimeout(process, 300);
+
+  // setInterval(process, 200);
 }
 
 canvas.addEventListener("click", startGame);
@@ -371,6 +386,10 @@ function rotate() {
   }
 }
 
+function goFaster() {
+  fast_frame = true;
+}
+
 document.addEventListener("keydown", function (event) {
   if (event.key == "ArrowLeft") {
     go_left();
@@ -378,6 +397,8 @@ document.addEventListener("keydown", function (event) {
     go_right();
   } else if (event.key == "ArrowUp") {
     rotate();
+  } else if (event.key == "ArrowDown") {
+    goFaster();
   }
 });
 
