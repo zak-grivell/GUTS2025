@@ -90,6 +90,7 @@ function sprite_map_get(sprit_map, offset) {
 function render_block(block) {
   block.shape.forEach((offset) => {
     ctx.save();
+
     let p = v_add(block.pos, offset);
     let sp_map = sprite_map_get(block.sprite_map, offset);
     ctx.translate(
@@ -204,8 +205,13 @@ function spawn_block() {
 let score = 0;
 
 function gameOver() {
+  AudioHandler.playSoundOnce("game_over");
   draw_grid();
   ctx.font = "32px 'Press Start 2P'";
+
+  set_if_high_score(score);
+
+  ScoreCounterHandler.setHighScoreCounter(get_high_score());
 
   ctx.fillText("Oh No", 90, 100);
   ctx.fillText("We could", 50, 150);
