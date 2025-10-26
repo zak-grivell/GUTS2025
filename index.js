@@ -206,21 +206,30 @@ let score = 0;
 
 function gameOver() {
   AudioHandler.playSoundOnce("game_over");
-  draw_grid();
+
   ctx.font = "32px 'Press Start 2P'";
+  ctx.strokeStyle = "white";
 
   set_if_high_score(score);
 
   ScoreCounterHandler.setHighScoreCounter(get_high_score());
 
   ctx.fillText("Oh No", 90, 100);
+  ctx.strokeText("Oh No", 90, 100);
   ctx.fillText("We could", 50, 150);
+  ctx.strokeText("We could", 50, 150);
   ctx.fillText("Not", 130, 200);
+  ctx.strokeText("Not", 130, 200);
   ctx.fillText("Fit A", 90, 250);
+  ctx.strokeText("Fit A", 90, 250);
   ctx.fillText("Weekend", 50, 300);
+  ctx.strokeText("Weekend", 50, 300);
   ctx.fillText("Away", 90, 350);
+  ctx.strokeText("Away", 90, 350);
   ctx.fillText("in the", 90, 400);
+  ctx.strokeText("in the", 90, 400);
   ctx.fillText("Suitcase", 50, 450);
+  ctx.strokeText("Suitcase", 50, 450);
 
   ctx.font = "28px 'Press Start 2P'";
   ctx.fillText("Try Again?", 15, 550);
@@ -254,10 +263,6 @@ function process() {
   if (!playing) {
     return;
   }
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  draw_grid();
 
   let can_move_down = check_direction(
     current_down,
@@ -309,16 +314,7 @@ function process() {
   }
 
   // render the placed blocks
-  grid.forEach((row, y) =>
-    row.forEach((item, x) => {
-      if (item !== null) {
-        render_single({ x, y }, item);
-      }
-    }),
-  );
 
-  // render the falling block
-  render_block(current_down);
   current_down.pos.y += 1;
 
   next_frame();
@@ -345,6 +341,8 @@ function startGame() {
   );
 
   spawn_block();
+
+  requestAnimationFrame(draw);
 
   playing = true;
 
@@ -373,6 +371,29 @@ function go_left() {
 function go_right() {
   if (!check_direction(current_down, { x: 1, y: 0 }, current_down.shape)) {
     current_down.pos.x = Math.min(9, current_down.pos.x + 1);
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  draw_grid();
+
+  grid.forEach((row, y) =>
+    row.forEach((item, x) => {
+      if (item !== null) {
+        render_single({ x, y }, item);
+      }
+    }),
+  );
+
+  // render the falling block
+  render_block(current_down);
+
+  if (playing) {
+    requestAnimationFrame(draw);
+  } else {
+    gameOver();
   }
 }
 
