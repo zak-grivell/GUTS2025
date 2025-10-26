@@ -3,7 +3,7 @@ let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
 
 function rand_array(items) {
-  return "O";
+  // return "S";
   return items[Math.floor(Math.random() * items.length)];
 }
 
@@ -19,12 +19,36 @@ let images = {
 
 const grid_size = 32;
 
+const middle_offsets = {
+  I: 0,
+  J: 1,
+  L: 1,
+  O: 1,
+  S: 1,
+  T: 1,
+  Z: 1,
+};
+
+const vert_sizes = {
+  I: { x: 1, y: 4 },
+  J: { x: 2, y: 3 },
+  L: { x: 2, y: 3 },
+  O: { x: 2, y: 2 },
+  S: { x: 2, y: 3 },
+  T: { x: 2, y: 3 },
+  Z: { x: 2, y: 3 },
+};
+
 function p(x, y) {
   return { x, y };
 }
 
 function v_add(a, b) {
   return { x: a.x + b.x, y: a.y + b.y };
+}
+
+function v_eq(a, b) {
+  return a.x == b.x && a.y == b.y;
 }
 
 let block_types = "IJLOSTZ";
@@ -73,29 +97,83 @@ images.notgiven = new Image();
 
 images.notgiven.src = "assets/cube.png";
 
+let rotation_offsets = {
+  0: { x: 0, y: -1 },
+  90: { x: 0, y: 0 },
+  180: { x: 0, y: 0 },
+  270: { x: 0, y: 0 },
+};
+
+function sprite_map_get(sprit_map, offset) {
+  for (const item of sprit_map) {
+    if (v_eq(item[1], offset)) {
+      return item[0];
+    }
+  }
+
+  console.log("not found", offset, sprit_map);
+}
+
 function render_block(block) {
   block.shape.forEach((offset) => {
+    ctx.save();
+
     let p = v_add(block.pos, offset);
 
+    let sp_map = sprite_map_get(block.sprite_map, offset);
+
+    ctx.translate(
+      p.x * grid_size + grid_size / 2,
+      p.y * grid_size + grid_size / 2,
+    );
+
+    console.log(block.angle);
+
+    // rotate the canvas to the specified degrees
+    ctx.rotate((block.angle * Math.PI) / 180);
+
     ctx.drawImage(
-      images.notgiven,
-      p.x * grid_size,
-      p.y * grid_size,
+      images[block.t],
+      sp_map.x * 16,
+      sp_map.y * 16,
+      16,
+      16,
+      -grid_size / 2,
+      -grid_size / 2,
       grid_size,
       grid_size,
     );
+
+    ctx.restore();
   });
 }
 
 function render_single(pos, block) {
-  block.sprite.setAttribute("style", "transform: rotate(" + 90 + "deg)");
+  ctx.save();
+
+  // move to the center of the canvas
+  ctx.translate(
+    pos.x * grid_size + grid_size / 2,
+    pos.y * grid_size + grid_size / 2,
+  );
+
+  // rotate the canvas to the specified degrees
+  ctx.rotate((block.angle * Math.PI) / 180);
+
   ctx.drawImage(
     block.sprite,
-    pos.x * grid_size,
-    pos.y * grid_size,
+    block.sprite_offset.x * 16,
+    block.sprite_offset.y * 16,
+    16,
+    16,
+    -grid_size / 2,
+    -grid_size / 2,
     grid_size,
     grid_size,
   );
+
+  // we’re done with the rotating so restore the unrotated context
+  ctx.restore();
 }
 
 const X_SIZE = 10;
@@ -145,9 +223,11 @@ function rowFull(y) {
   }
 }
 
-function add_cube(position) {
+function add_cube(position, sprite, sprite_offset, angle) {
   gs(position, {
-    sprite: images.notgiven,
+    sprite,
+    sprite_offset,
+    angle,
   });
 }
 
@@ -156,8 +236,10 @@ function spawn_block() {
 
   current_down = {
     t: next_shape,
-    pos: { x: X_SIZE / 2, y: -4 },
+    pos: { x: X_SIZE / 2 + middle_offsets[next_shape], y: -4 },
     shape: block_shapes[next_shape][0],
+    sprite_map: block_shapes[next_shape][0].map((v) => [v, v]),
+    angle: 0,
   };
 }
 
@@ -166,9 +248,17 @@ let score = 0;
 function gameOver() {
   ctx.font = "32px 'Press Start 2P'";
 
-  ctx.fillText("Click", 90, 200);
-  ctx.fillText("To", 140, 250);
-  ctx.fillText("Retry", 90, 300);
+  ctx.fillText("Oh No", 90, 100);
+  ctx.fillText("We could", 50, 150);
+  ctx.fillText("Not", 130, 200);
+  ctx.fillText("Fit A", 90, 250);
+  ctx.fillText("Weekend", 50, 300);
+  ctx.fillText("Away", 90, 350);
+  ctx.fillText("in the", 90, 400);
+  ctx.fillText("Suitcase", 50, 450);
+
+  ctx.font = "28px 'Press Start 2P'";
+  ctx.fillText("Try Again?", 15, 550);
 }
 
 function process() {
@@ -192,7 +282,14 @@ function process() {
       return;
     }
 
-    cube_positions.forEach(add_cube);
+    current_down.sprite_map.forEach(([sprite_offset, offset]) => {
+      add_cube(
+        v_add(current_down.pos, offset),
+        images[current_down.t],
+        sprite_offset,
+        current_down.angle,
+      );
+    });
 
     let to_clear = [...new Set(y_changed)]
       .toSorted((a, b) => b - a)
@@ -230,7 +327,7 @@ canvas.addEventListener("click", () => {
 
   running = true;
 
-  setInterval(process, 200);
+  setInterval(process, 20);
 });
 
 function on_load() {
@@ -256,8 +353,25 @@ function go_right() {
 function rotate() {
   let next_rot = rotateObj(current_down.shape);
 
-  if (!check_direction(current_down, { x: 0, y: 0 }, next_rot)) {
-    current_down.shape = next_rot;
+  let next_shape = next_rot.map((v) => v[1]);
+
+  current_down.angle = (current_down.angle + 90) % 360;
+
+  if (!check_direction(current_down, { x: 0, y: 0 }, next_shape)) {
+    current_down.shape = next_shape;
+
+    current_down.sprite_map.forEach(([image_position, stored_last_map], i) => {
+      console.log(current_down.sprit_map, i, current_down.sprite_map[i]);
+      next_rot.forEach(([from, to]) => {
+        console.log(from);
+
+        console.log(from, stored_last_map);
+        if (v_eq(from, stored_last_map)) {
+          current_down.sprite_map[i] = [image_position, to];
+          console.log("updating_sprit");
+        }
+      });
+    });
   }
 }
 
@@ -282,10 +396,8 @@ function rotateObj(arr) {
     if (v.y > height) height = v.y;
   }
   const translateFn = translateCoord(p(width / 2, height / 2));
-  const iLimit = arr.length;
-  const ret = new Array(iLimit);
-  for (let i = 0; i < iLimit; i++) ret[i] = rotate90deg(translateFn(arr[i]));
-  return ret;
+
+  return arr.map((val) => [val, rotate90deg(translateFn(val))]);
 }
 
 // TODO - implement method
@@ -414,7 +526,7 @@ function rotateCurrentBlock() {
 UI.display();
 */
 
-const ScoreCounterHandler = (function() {
+const ScoreCounterHandler = (function () {
   const scoreCounterCanvas = document.body.querySelector("#scoreCounter");
   const scoreCounterCtx = scoreCounterCanvas.getContext("2d");
   const scoreTypefont = document.body.querySelector("#pixelated_typefont");
@@ -422,26 +534,49 @@ const ScoreCounterHandler = (function() {
   const hsCounterCanvas = document.body.querySelector("#highScoreCounter");
   const hsCounterCtx = hsCounterCanvas.getContext("2d");
 
-  const scoreBackgrounds = document.body.querySelector("#score_background_spritesheet");
+  const scoreBackgrounds = document.body.querySelector(
+    "#score_background_spritesheet",
+  );
 
   function drawScore(altCtx, maxLength, bgCeof, score) {
     let scoreStr = score.toString();
-    if(scoreStr.length > maxLength) scoreStr = '9'.repeat(maxLength);
-    else if(scoreStr.length < maxLength) scoreStr = '0'.repeat(maxLength - scoreStr.length) + scoreStr;
-    for(let i = 0; i < maxLength; i++) {
+    if (scoreStr.length > maxLength) scoreStr = "9".repeat(maxLength);
+    else if (scoreStr.length < maxLength)
+      scoreStr = "0".repeat(maxLength - scoreStr.length) + scoreStr;
+    for (let i = 0; i < maxLength; i++) {
       // BEHOLD - MAGIC NUMBERS!
-      altCtx.drawImage(scoreBackgrounds, 16*bgCeof, 0, 16, 16, 16*i, 0, 16, 16);
-      altCtx.drawImage(scoreTypefont, 16*Number(scoreStr[i]), 0, 16, 16, 16*i, 0, 16, 16);
+      altCtx.drawImage(
+        scoreBackgrounds,
+        16 * bgCeof,
+        0,
+        16,
+        16,
+        16 * i,
+        0,
+        16,
+        16,
+      );
+      altCtx.drawImage(
+        scoreTypefont,
+        16 * Number(scoreStr[i]),
+        0,
+        16,
+        16,
+        16 * i,
+        0,
+        16,
+        16,
+      );
     }
   }
 
   return {
-    setScoreCounter: score => {
-      drawScore(scoreCounterCtx, 8, 0, score)
+    setScoreCounter: (score) => {
+      drawScore(scoreCounterCtx, 8, 0, score);
     },
-    setHighScoreCounter: score => {
-      drawScore(hsCounterCtx, 8, 1, score)
-    }
+    setHighScoreCounter: (score) => {
+      drawScore(hsCounterCtx, 8, 1, score);
+    },
   };
 })();
 
